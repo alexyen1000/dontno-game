@@ -6,7 +6,7 @@
   <script src="js/underscore-1.7.0.min.js"></script>
   <script src="js/velocity-1.2.2/velocity.min.js"></script>
   <script src="js/velocity-1.2.2/velocity.ui.min.js"></script>
-  <link type="text/data.yaml" src="data.yaml"></link>
+  <link type="text/cfg.yaml" src="cfg.yaml"></link>
 </head>
 <body>
   <div class="main" id="main">
@@ -20,33 +20,39 @@
 
 <script>
 $(document).ready(function() {
-  loadDatas(startGame);
+  loadCfgs(startGame);
 });
 
-function loadDatas(successCallback) {
-  var datasHave = {};
-  var datasWant = $("link[type='text/data.yaml']");
-  datasWant.each(function(i, el) {
+function loadCfgs(successCallback) {
+  var cfgsHave = {};
+  var cfgsWant = $("link[type='text/cfg.yaml']");
+  cfgsWant.each(function(i, el) {
     var src = $(el).attr("src");
     $.ajax({
       url: src,
       dataType: "text",
       success: function(data) {
-        datasHave[src] = jsyaml.safeLoad(data, {filename: src});
-        if (_.size(datasHave) >= _.size(datasWant)) {
-          successCallback && successCallback(datasHave);
+        cfgsHave[src] = jsyaml.safeLoad(data, {filename: src});
+        if (_.size(cfgsHave) >= _.size(cfgsWant)) {
+          var merged = {}
+          _.each(cfgsHave, function(cfg) {
+            _.each(cfg, function(v, k) {
+              merged[k] = _.defaults(merged[k] || {}, v);
+            });
+          });
+          successCallback && successCallback(merged);
         }
       },
-      error: function() { console.log("error: loadDatas", arguments); }
+      error: function() { console.log("error: loadCfgs", arguments); }
     });
   });
 }
 
-var TILE_WIDTH = 20;
-var TILE_HEIGHT = 20;
+function startGame(cfg) {
+  console.log(cfg);
 
-function startGame(datas) {
-  console.log(datas);
+  tileWidth = cfg.consts.tile.width;
+  tileHeight = cfg.consts.tile.height;
 
   var focusX = 300;
   var focusY = 300;
@@ -55,8 +61,8 @@ function startGame(datas) {
     for (var j = 0; j < 40; j++) {
       var tile = $("<tile/>");
       tile.attr("id", "t" + i + '-' + j);
-      tile.css("top", i * TILE_HEIGHT + "px");
-      tile.css("left", j * TILE_WIDTH + "px");
+      tile.css("top", i * tileWidth + "px");
+      tile.css("left", j * tileHeight + "px");
       tile.appendTo("tiles");
     }
   }
