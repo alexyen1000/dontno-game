@@ -1,0 +1,142 @@
+<html>
+<head>
+  <title>dontno game</title>
+  <script src="js/jquery-2.1.3.min.js"></script>
+  <script src="js/js-yaml-3.2.6.min.js"></script>
+  <script src="js/underscore-1.7.0.min.js"></script>
+  <script src="js/velocity-1.2.2/velocity.min.js"></script>
+  <script src="js/velocity-1.2.2/velocity.ui.min.js"></script>
+  <link type="text/data.yaml" src="data.yaml"></link>
+</head>
+<body>
+  <div class="main" id="main">
+    <stage id="stage0">
+      <tiles></tiles>
+      <critters></critters>
+      <bolts></bolts>
+    </stage>
+  </div>
+</body>
+
+<script>
+$(document).ready(function() {
+  loadDatas(startGame);
+});
+
+function loadDatas(successCallback) {
+  var datasHave = {};
+  var datasWant = $("link[type='text/data.yaml']");
+  datasWant.each(function(i, el) {
+    var src = $(el).attr("src");
+    $.ajax({
+      url: src,
+      dataType: "text",
+      success: function(data) {
+        datasHave[src] = jsyaml.safeLoad(data, {filename: src});
+        if (_.size(datasHave) >= _.size(datasWant)) {
+          successCallback && successCallback(datasHave);
+        }
+      },
+      error: function() { console.log("error: loadDatas", arguments); }
+    });
+  });
+}
+
+var TILE_WIDTH = 20;
+var TILE_HEIGHT = 20;
+
+function startGame(datas) {
+  console.log(datas);
+
+  var focusX = 300;
+  var focusY = 300;
+
+  for (var i = 0; i < 30; i++) {
+    for (var j = 0; j < 40; j++) {
+      var tile = $("<tile/>");
+      tile.attr("id", "t" + i + '-' + j);
+      tile.css("top", i * TILE_HEIGHT + "px");
+      tile.css("left", j * TILE_WIDTH + "px");
+      tile.appendTo("tiles");
+    }
+  }
+
+  for (var i = 0; i < 200; i++) {
+    var r = $("<critter/>");
+    r.attr("id", 'c' + i);
+    r.css("background-color", "#" + Math.floor((Math.random() * 999)));
+    r.appendTo("critters");
+    r.velocity({
+      top: Math.random() * 400 + "px",
+      left: Math.random() * 800 + "px",
+    }, {
+      loop: true,
+      duration: 2000,
+      easing: "easeInCubic",
+    });
+  }
+
+  for (var i = 0; i < 1; i++) {
+    var b = $("<bolt/>");
+    b.attr("id", 'b' + i);
+    b.css("background-color", "red");
+    b.appendTo("bolts");
+    bolt(b,
+      {top: "100px", left: "100px"},
+      {top: "400px", left: "700px"},
+      i * 100,
+      function(b) {
+        var rv = function() {
+          bolt(b, {top: "100px", left: "100px"},
+                  {top: focusY, left: focusX},
+                  0, rv);
+        };
+        return rv;
+      }(b))
+  }
+
+  $("#stage0").mousemove(function(event) {
+    focusX = event.clientX;
+    focusY = event.clientY;
+  });
+}
+
+function bolt(b, from, to, delay, complete) {
+  b.velocity({
+    top: [to.top, from.top],
+    left: [to.left, from.left],
+    rotateZ: ["1080deg", 0],
+  }, {
+    delay: delay,
+    duration: 900,
+    easing: "easeInCubic",
+    complete: complete
+  });
+}
+</script>
+
+<style>
+.main-TEST {
+  transform: perspective(1000px) rotateX(20deg);
+}
+stage, stage * {
+  position: absolute;
+  display: block;
+}
+tile {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #aad;
+  background-color: #eea;
+}
+critter {
+  width: 15px;
+  height: 15px;
+}
+bolt {
+  width: 10px;
+  height: 80px;
+  border-radius: 10px;
+}
+</style>
+</html>
