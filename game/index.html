@@ -50,12 +50,38 @@ function loadCfgs(successCallback) {
 
 function startGame(cfg) {
   console.log(cfg);
+  runMap(cfg, "home");
+}
 
-  tileWidth = cfg.consts.tile.width;
-  tileHeight = cfg.consts.tile.height;
+function runMap(cfg, mapName) {
+  var tileWidth = cfg.consts.tile.width;
+  var tileHeight = cfg.consts.tile.height;
 
-  viewWidth = cfg.consts.view.width;
-  viewHeight = cfg.consts.view.height;
+  var viewWidth = cfg.consts.view.width;
+  var viewHeight = cfg.consts.view.height;
+
+  var mapRows = _.compact(cfg.maps[mapName].map.split("\n"));
+
+  var startCol = -1;
+  var startRow = 0;
+  while (startRow < mapRows.length) {
+    startCol = mapRows[startRow].indexOf('S');
+    if (startCol >= 0) {
+      break;
+    }
+    startRow++;
+  }
+  if (startCol < 0 || startRow >= mapRows.length) {
+    console.log("could not find start point", mapName);
+    return
+  }
+
+  var px = (startCol * 1.0) + 0.5;
+  var py = (startRow * 1.0) + 0.5;
+
+  var numCols = _.max(mapRows, function(row) { return row.length; }).length;
+
+  console.log("numCols", numCols, px, py);
 
   var focusX = 300;
   var focusY = 300;
