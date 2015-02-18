@@ -54,11 +54,14 @@ function startGame(cfg) {
   tileWidth = cfg.consts.tile.width;
   tileHeight = cfg.consts.tile.height;
 
+  viewWidth = cfg.consts.view.width;
+  viewHeight = cfg.consts.view.height;
+
   var focusX = 300;
   var focusY = 300;
 
-  for (var i = 0; i < 30; i++) {
-    for (var j = 0; j < 40; j++) {
+  for (var i = 0; i < (viewHeight / tileHeight); i++) {
+    for (var j = 0; j < (viewWidth / tileWidth); j++) {
       var tile = $("<tile/>");
       tile.attr("id", "t" + i + '-' + j);
       tile.css("top", i * tileWidth + "px");

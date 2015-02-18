@@ -3,6 +3,9 @@ consts:
   tile:
     width: 20
     height: 20
+  view:
+    width: 800
+    height: 600
 
 mapKeys:
   +: wall
