@@ -100,12 +100,13 @@ function runMap(cfg, stageEl, mapName) {
 
   var numCols = _.max(mapRows, function(row) { return row.length; }).length;
 
-  for (var i = 0; i < (viewHeight / tileHeight); i++) {
-    for (var j = 0; j < (viewWidth / tileWidth); j++) {
+  for (var r = 0; r < mapRows.length; r++) {
+    for (var c = 0; c < numCols; c++) {
       var tile = $("<tile/>");
-      tile.attr("id", "t" + i + '-' + j);
-      tile.css("top", i * tileWidth + "px");
-      tile.css("left", j * tileHeight + "px");
+      tile.attr("id", "t" + r + '-' + c);
+      tile.css("top", r * tileWidth + "px");
+      tile.css("left", c * tileHeight + "px");
+      tile.text(mapRows[r].charAt(c));
       tile.appendTo("tiles");
     }
   }
