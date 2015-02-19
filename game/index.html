@@ -52,17 +52,27 @@ function loadCfgs(successCallback) {
 
 function startGame(cfg) {
   console.log(cfg);
-  runMap(cfg, "home");
+  runMap(cfg, $("#stage0").first(), "home");
+}
 
-  $("#stage0 world").velocity({
+function runMap(cfg, stageEl, mapName) {
+  var stagePos = stageEl.position();
+
+  var stagePointerX = 300;
+  var stagePointerY = 300;
+  stageEl.mousemove(function(event) {
+    stagePointerX = event.pageX - stagePos.left;
+    stagePointerY = event.pageY - stagePos.top;
+  });
+
+  var worldEl = stageEl.children("world").first();
+  worldEl.velocity({
     left: 400,
   }, {
     loop: true,
     duration: 4000,
-  })
-}
+  });
 
-function runMap(cfg, mapName) {
   var tileWidth = cfg.consts.tile.width;
   var tileHeight = cfg.consts.tile.height;
 
@@ -89,11 +99,6 @@ function runMap(cfg, mapName) {
   var py = (startRow * 1.0) + 0.5;
 
   var numCols = _.max(mapRows, function(row) { return row.length; }).length;
-
-  console.log("numCols", numCols, px, py);
-
-  var focusX = 300;
-  var focusY = 300;
 
   for (var i = 0; i < (viewHeight / tileHeight); i++) {
     for (var j = 0; j < (viewWidth / tileWidth); j++) {
@@ -131,21 +136,16 @@ function runMap(cfg, mapName) {
       i * 100,
       function(b) {
         var rv = function() {
-          var pos = $("#stage0 world").position();
+          var worldPos = worldEl.position();
           bolt(b, {top: "100px",
                    left: "100px"},
-                  {top: focusY - pos.top,
-                   left: focusX - pos.left},
+                  {top: stagePointerY - worldPos.top,
+                   left: stagePointerX - worldPos.left},
                   0, rv);
         };
         return rv;
       }(b))
   }
-
-  $("#stage0").mousemove(function(event) {
-    focusX = event.pageX;
-    focusY = event.pageY;
-  });
 }
 
 function bolt(b, from, to, delay, complete) {
