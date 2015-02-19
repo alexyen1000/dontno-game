@@ -51,6 +51,14 @@ function loadCfgs(successCallback) {
 function startGame(cfg) {
   console.log(cfg);
   runMap(cfg, "home");
+
+  $("#stage0").velocity({
+    top: 10,
+    left: 40,
+  }, {
+    loop: true,
+    duration: 500,
+  });
 }
 
 function runMap(cfg, mapName) {
