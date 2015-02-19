@@ -9,8 +9,18 @@
   <link type="text/cfg.yaml" src="cfg.yaml"></link>
 </head>
 <body>
-  <div class="main" id="main">
+  <div class="main" id="main0">
     <stage id="stage0">
+      <world>
+        <tiles></tiles>
+        <critters></critters>
+        <bolts></bolts>
+      </world>
+    </stage>
+  </div>
+
+  <div class="main" id="main1">
+    <stage id="stage1">
       <world>
         <tiles></tiles>
         <critters></critters>
@@ -22,7 +32,10 @@
 
 <script>
 $(document).ready(function() {
-  loadCfgs(startGame);
+  loadCfgs(function(cfg) {
+    runMap(cfg, "stage0", "home");
+    runMap(cfg, "stage1", "cave-of-fancy");
+  });
 });
 
 function loadCfgs(successCallback) {
@@ -50,12 +63,8 @@ function loadCfgs(successCallback) {
   });
 }
 
-function startGame(cfg) {
-  console.log(cfg);
-  runMap(cfg, $("#stage0").first(), "home");
-}
-
-function runMap(cfg, stageEl, mapName) {
+function runMap(cfg, stageId, mapName) {
+  var stageEl = $("#" + stageId).first();
   var stagePos = stageEl.position();
 
   var stagePointerX = 300;
@@ -65,7 +74,7 @@ function runMap(cfg, stageEl, mapName) {
     stagePointerY = event.pageY - stagePos.top;
   });
 
-  var worldEl = stageEl.children("world").first();
+  var worldEl = $("#" + stageId + " world").first();
   worldEl.velocity({
     left: 400,
   }, {
@@ -107,7 +116,7 @@ function runMap(cfg, stageEl, mapName) {
       tile.css("top", r * tileWidth + "px");
       tile.css("left", c * tileHeight + "px");
       tile.text(mapRows[r].charAt(c));
-      tile.appendTo("tiles");
+      tile.appendTo($("#" + stageId + " world tiles"));
     }
   }
 
@@ -115,7 +124,7 @@ function runMap(cfg, stageEl, mapName) {
     var r = $("<critter/>");
     r.attr("id", 'c' + i);
     r.css("background-color", "#" + Math.floor((Math.random() * 999)));
-    r.appendTo("critters");
+    r.appendTo($("#" + stageId + " world critters"));
     r.velocity({
       top: Math.random() * 400 + "px",
       left: Math.random() * 800 + "px",
@@ -130,7 +139,7 @@ function runMap(cfg, stageEl, mapName) {
     var b = $("<bolt/>");
     b.attr("id", 'b' + i);
     b.css("background-color", "red");
-    b.appendTo("bolts");
+    b.appendTo($("#" + stageId + " world bolts"));
     bolt(b,
       {top: "100px", left: "100px"},
       {top: "400px", left: "700px"},
@@ -164,6 +173,9 @@ function bolt(b, from, to, delay, complete) {
 </script>
 
 <style>
+.main {
+  height: 500px;
+}
 .main-TEST {
   transform: perspective(1000px) rotateX(20deg);
 }
