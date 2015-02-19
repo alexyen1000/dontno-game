@@ -11,9 +11,11 @@
 <body>
   <div class="main" id="main">
     <stage id="stage0">
-      <tiles></tiles>
-      <critters></critters>
-      <bolts></bolts>
+      <world>
+        <tiles></tiles>
+        <critters></critters>
+        <bolts></bolts>
+      </world>
     </stage>
   </div>
 </body>
@@ -52,13 +54,12 @@ function startGame(cfg) {
   console.log(cfg);
   runMap(cfg, "home");
 
-  $("#stage0").velocity({
-    top: 10,
+  $("#stage0 world").velocity({
     left: 400,
   }, {
     loop: true,
-    duration: 500,
-  });
+    duration: 4000,
+  })
 }
 
 function runMap(cfg, mapName) {
@@ -130,8 +131,11 @@ function runMap(cfg, mapName) {
       i * 100,
       function(b) {
         var rv = function() {
-          bolt(b, {top: "100px", left: "100px"},
-                  {top: focusY, left: focusX},
+          var pos = $("#stage0 world").position();
+          bolt(b, {top: "100px",
+                   left: "100px"},
+                  {top: focusY - pos.top,
+                   left: focusX - pos.left},
                   0, rv);
         };
         return rv;
@@ -165,6 +169,11 @@ function bolt(b, from, to, delay, complete) {
 stage, stage * {
   position: absolute;
   display: block;
+}
+stage {
+  width: 600px;
+  height: 300px;
+  overflow: hidden;
 }
 tile {
   width: 20px;
