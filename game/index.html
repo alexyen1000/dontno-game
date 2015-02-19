@@ -143,7 +143,6 @@ function runMap(cfg, stageId, mapName) {
     bolt(b,
       {top: "100px", left: "100px"},
       {top: "400px", left: "700px"},
-      i * 100,
       function(b) {
         var rv = function() {
           var worldPos = worldEl.position();
@@ -151,20 +150,19 @@ function runMap(cfg, stageId, mapName) {
                    left: "100px"},
                   {top: stagePointerY - worldPos.top,
                    left: stagePointerX - worldPos.left},
-                  0, rv);
+                  rv);
         };
         return rv;
       }(b))
   }
 }
 
-function bolt(b, from, to, delay, complete) {
+function bolt(b, from, to, complete) {
   b.velocity({
     top: [to.top, from.top],
     left: [to.left, from.left],
     rotateZ: ["1080deg", 0],
   }, {
-    delay: delay,
     duration: 900,
     easing: "easeInCubic",
     complete: complete
