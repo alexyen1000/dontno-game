@@ -40,29 +40,32 @@ var cmdKeysIJKL = { i: 'up', j: 'left', k: 'down', l: 'right' };
 var curKeys = {};
 var curKeysChanged = []; // Registered callbacks.
 
+function curKeysChangedFire(keyDown, event) {
+  for (var i = 0; i < curKeysChanged.length; i++) {
+    curKeysChanged[i](curKeys, keyDown, event);
+  }
+}
+
 $(document).ready(function() {
   $("body").keydown(function(event) {
     var k = wantKeys[event.which];
     if (k && !curKeys[k]) {
       curKeys[k] = event;
-      for (var i = 0; i < curKeysChanged.length; i++) {
-        curKeysChanged[i](curKeys, true, event);
-      }
+      curKeysChangedFire(true, event);
     }
   });
+
   $("body").keyup(function(event) {
     var k = wantKeys[event.which];
     if (k && curKeys[k]) {
       delete curKeys[wantKeys[event.which]];
-      for (var i = 0; i < curKeysChanged.length; i++) {
-        curKeysChanged[i](curKeys, false, event);
-      }
+      curKeysChangedFire(false, event);
     }
   });
 
   loadCfgs(function(cfg) {
-    runMap(cfg, "stage0", "home", cmdKeysWASD);
-    runMap(cfg, "stage1", "cave-of-fancy", cmdKeysIJKL);
+    runMap(cfg, "stage0", "home", curKeys, cmdKeysWASD);
+    runMap(cfg, "stage1", "cave-of-fancy", curKeys, cmdKeysIJKL);
   });
 });
 
@@ -95,7 +98,7 @@ function loadCfgs(successCallback) {
 
 // ------------------------------------------------------------
 
-function runMap(cfg, stageId, mapName, cmdKeys) {
+function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
   var stageEl = $("#" + stageId).first();
   var stagePos = stageEl.position();
 
@@ -108,8 +111,12 @@ function runMap(cfg, stageId, mapName, cmdKeys) {
 
   var worldEl = $("#" + stageId + " world").first();
 
+  // ---------------------------------------------------
+
   var tileWidth = cfg.consts.tile.width;
   var tileHeight = cfg.consts.tile.height;
+  var tileWidth2 = tileWidth * 0.5;
+  var tileHeight2 = tileHeight * 0.5;
 
   var viewWidth = cfg.consts.view.width;
   var viewHeight = cfg.consts.view.height;
@@ -137,19 +144,25 @@ function runMap(cfg, stageId, mapName, cmdKeys) {
 
   var dirCmds = { 'up': [0, -1], 'down': [0, 1], 'left': [-1, 0],'right': [1, 0] };
 
-  curKeysChanged.push(function(currKeys, keyDown, event) {
-    for (var k in currKeys) {
+  function onMoved() {
+    for (var k in curKeys) {
       var dir = dirCmds[cmdKeys[k]];
       if (dir) {
-        px = px + dir[0];
-        py = py + dir[1];
+        px = Math.max(0, px + dir[0] * tileWidth2);
+        py = Math.max(0, py + dir[1] * tileHeight2);
 
-        console.log(currKeys, dir, px, py);
-
-        worldEl.velocity({ left: -px + "px", top: -py + "px" }, { duration: 100 });
+        worldEl.velocity("finish").velocity({
+          left: -px + "px", top: -py + "px"
+        }, {
+          duration: 100, complete: onMoved
+        });
       }
-    };
-  });
+    }
+  }
+
+  curKeysChanged.push(onMoved);
+
+  // ---------------------------------------------------
 
   for (var r = 0; r < mapRows.length; r++) {
     for (var c = 0; c < numCols; c++) {
