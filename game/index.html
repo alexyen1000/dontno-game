@@ -31,8 +31,11 @@
 </body>
 
 <script>
-var wantKeys = { 87: 'w', 65: 'a', 83: 's', 68: 'd' };
-var cmdKeys = { w: 'up', a: 'left', s: 'down', d: 'right' };
+var wantKeys = _.object(_.map("WASDIJKL".split(""),
+  function(c) { return [ c.charCodeAt(0), c.toLowerCase()]; }));
+
+var cmdKeysWASD = { w: 'up', a: 'left', s: 'down', d: 'right' };
+var cmdKeysIJKL = { i: 'up', j: 'left', k: 'down', l: 'right' };
 
 var curKeys = {};
 var curKeysChanged = []; // Registered callbacks.
@@ -58,8 +61,8 @@ $(document).ready(function() {
   });
 
   loadCfgs(function(cfg) {
-    runMap(cfg, "stage0", "home", cmdKeys);
-    runMap(cfg, "stage1", "cave-of-fancy", cmdKeys);
+    runMap(cfg, "stage0", "home", cmdKeysWASD);
+    runMap(cfg, "stage1", "cave-of-fancy", cmdKeysIJKL);
   });
 });
 
