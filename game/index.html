@@ -32,6 +32,8 @@
 
 <script>
 var wantKeys = { 87: 'w', 65: 'a', 83: 's', 68: 'd' };
+var cmdKeys = { w: 'up', a: 'left', s: 'down', d: 'right' };
+
 var curKeys = {};
 var curKeysChanged = []; // Registered callbacks.
 
@@ -56,10 +58,12 @@ $(document).ready(function() {
   });
 
   loadCfgs(function(cfg) {
-    runMap(cfg, "stage0", "home");
-    runMap(cfg, "stage1", "cave-of-fancy");
+    runMap(cfg, "stage0", "home", cmdKeys);
+    runMap(cfg, "stage1", "cave-of-fancy", cmdKeys);
   });
 });
+
+// ------------------------------------------------------------
 
 function loadCfgs(successCallback) {
   var cfgsHave = {};
@@ -86,13 +90,11 @@ function loadCfgs(successCallback) {
   });
 }
 
-function runMap(cfg, stageId, mapName) {
+// ------------------------------------------------------------
+
+function runMap(cfg, stageId, mapName, cmdKeys) {
   var stageEl = $("#" + stageId).first();
   var stagePos = stageEl.position();
-
-  curKeysChanged.push(function(currKeys, keyDown, event) {
-    console.log(currKeys, keyDown, event);
-  });
 
   var stagePointerX = 300;
   var stagePointerY = 300;
@@ -102,12 +104,6 @@ function runMap(cfg, stageId, mapName) {
   });
 
   var worldEl = $("#" + stageId + " world").first();
-  worldEl.velocity({
-    left: 400,
-  }, {
-    loop: true,
-    duration: 4000,
-  });
 
   var tileWidth = cfg.consts.tile.width;
   var tileHeight = cfg.consts.tile.height;
@@ -131,10 +127,26 @@ function runMap(cfg, stageId, mapName) {
     return
   }
 
+  var numCols = _.max(mapRows, function(row) { return row.length; }).length;
+
   var px = (startCol * 1.0) + 0.5;
   var py = (startRow * 1.0) + 0.5;
 
-  var numCols = _.max(mapRows, function(row) { return row.length; }).length;
+  var dirCmds = { 'up': [0, -1], 'down': [0, 1], 'left': [-1, 0],'right': [1, 0] };
+
+  curKeysChanged.push(function(currKeys, keyDown, event) {
+    for (var k in currKeys) {
+      var dir = dirCmds[cmdKeys[k]];
+      if (dir) {
+        px = px + dir[0];
+        py = py + dir[1];
+
+        console.log(currKeys, dir, px, py);
+
+        worldEl.velocity({ left: -px + "px", top: -py + "px" }, { duration: 100 });
+      }
+    };
+  });
 
   for (var r = 0; r < mapRows.length; r++) {
     for (var c = 0; c < numCols; c++) {
