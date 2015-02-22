@@ -55,7 +55,7 @@ function loadCfgs(successCallback) {
               merged[k] = _.defaults(merged[k] || {}, v);
             });
           });
-          successCallback && successCallback(merged);
+          successCallback(merged);
         }
       },
       error: function() { console.log("error: loadCfgs", arguments); }
