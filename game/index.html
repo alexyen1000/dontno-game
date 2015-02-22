@@ -31,7 +31,30 @@
 </body>
 
 <script>
+var wantKeys = { 87: 'w', 65: 'a', 83: 's', 68: 'd' };
+var curKeys = {};
+var curKeysChanged = []; // Registered callbacks.
+
 $(document).ready(function() {
+  $("body").keydown(function(event) {
+    var k = wantKeys[event.which];
+    if (k && !curKeys[k]) {
+      curKeys[k] = event;
+      for (var i = 0; i < curKeysChanged.length; i++) {
+        curKeysChanged[i](curKeys, true, event);
+      }
+    }
+  });
+  $("body").keyup(function(event) {
+    var k = wantKeys[event.which];
+    if (k && curKeys[k]) {
+      delete curKeys[wantKeys[event.which]];
+      for (var i = 0; i < curKeysChanged.length; i++) {
+        curKeysChanged[i](curKeys, false, event);
+      }
+    }
+  });
+
   loadCfgs(function(cfg) {
     runMap(cfg, "stage0", "home");
     runMap(cfg, "stage1", "cave-of-fancy");
@@ -66,6 +89,10 @@ function loadCfgs(successCallback) {
 function runMap(cfg, stageId, mapName) {
   var stageEl = $("#" + stageId).first();
   var stagePos = stageEl.position();
+
+  curKeysChanged.push(function(currKeys, keyDown, event) {
+    console.log(currKeys, keyDown, event);
+  });
 
   var stagePointerX = 300;
   var stagePointerY = 300;
