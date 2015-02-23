@@ -118,9 +118,6 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
   var tileWidth2 = tileWidth * 0.5;
   var tileHeight2 = tileHeight * 0.5;
 
-  var viewWidth = cfg.consts.view.width;
-  var viewHeight = cfg.consts.view.height;
-
   var mapRows = _.compact(cfg.maps[mapName].map.split("\n"));
   var numRows = mapRows.length;
   var numCols = _.max(mapRows, function(row) { return row.length; }).length;
