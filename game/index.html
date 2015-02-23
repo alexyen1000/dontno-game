@@ -124,6 +124,8 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
 
   var mapWidth = tileWidth * numCols;
   var mapHeight = tileHeight * numRows;
+  var mapWidth2 = mapWidth / 2;
+  var mapHeight2 = mapHeight / 2;
 
   var startCol = -1;
   var startRow = 0;
@@ -142,28 +144,32 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
   var px = (startCol * 1.0) + 0.5;
   var py = (startRow * 1.0) + 0.5;
 
-  var pxMid = mapWidth / 2;
-  var pyMid = mapHeight / 2;
-
   var dirCmds = { 'up': [0, -1], 'down': [0, 1], 'left': [-1, 0],'right': [1, 0] };
 
-  function onMoved() {
+  function onMoved(force) {
+    var pxOrig = px;
+    var pyOrig = py;
     for (var k in curKeys) {
       var dir = dirCmds[cmdKeys[k]];
       if (dir) {
-        px = Math.min(Math.max(-pxMid, px + dir[0] * tileWidth2), pxMid);
-        py = Math.min(Math.max(-pyMid, py + dir[1] * tileHeight2), pyMid);
-
-        worldEl.velocity("finish").velocity({
-          left: -px + "px", top: -py + "px"
-        }, {
-          duration: 100, complete: onMoved
-        });
+        px = Math.min(Math.max(-mapWidth2, px + dir[0] * tileWidth2), mapWidth2);
+        py = Math.min(Math.max(-mapHeight2, py + dir[1] * tileHeight2), mapHeight2);
       }
+    }
+    if (px != pxOrig || py != pyOrig || force) {
+      worldEl.velocity("stop").velocity({
+        left: -px,
+        top: -py
+      }, {
+        duration: 50,
+        complete: onMoved
+      });
     }
   }
 
   curKeysChanged.push(onMoved);
+
+  onMoved(true);
 
   // ---------------------------------------------------
 
