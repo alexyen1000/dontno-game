@@ -11,31 +11,39 @@
 <body>
   <div class="main" id="main0">
     <stage id="stage0">
-      <world>
-        <tiles></tiles>
-        <critters></critters>
-        <bolts></bolts>
-      </world>
+      <vcenter>
+        <vrotate>
+          <world>
+            <tiles></tiles>
+            <critters></critters>
+            <bolts></bolts>
+          </world>
+        </vrotate>
+      </vcenter>
     </stage>
   </div>
 
   <div class="main" id="main1">
     <stage id="stage1">
-      <world>
-        <tiles></tiles>
-        <critters></critters>
-        <bolts></bolts>
-      </world>
+      <vcenter>
+        <vrotate>
+          <world>
+            <tiles></tiles>
+            <critters></critters>
+            <bolts></bolts>
+          </world>
+        </vrotate>
+      </vcenter>
     </stage>
   </div>
 </body>
 
 <script>
-var wantKeys = _.object(_.map("WASDIJKL".split(""),
+var wantKeys = _.object(_.map("QEWASDUOIJKL".split(""),
   function(c) { return [c.charCodeAt(0), c.toLowerCase()]; }));
 
-var cmdKeysWASD = { w: 'up', a: 'left', s: 'down', d: 'right' };
-var cmdKeysIJKL = { i: 'up', j: 'left', k: 'down', l: 'right' };
+var cmdKeysWASD = { w: 'up', a: 'left', s: 'down', d: 'right', q: 'ccw', e: 'cw' };
+var cmdKeysIJKL = { i: 'up', j: 'left', k: 'down', l: 'right', u: 'ccw', o: 'cw' };
 
 var curKeys = {};
 var curKeysChanged = []; // Registered callbacks.
@@ -101,6 +109,8 @@ function loadCfgs(successCallback) {
 function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
   var stageEl = $("#" + stageId).first();
   var stagePos = stageEl.position();
+  var stageWidth = stageEl.width();
+  var stageHeight = stageEl.height();
 
   var stagePointerX = 300;
   var stagePointerY = 300;
@@ -109,7 +119,11 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
     stagePointerY = event.pageY - stagePos.top;
   });
 
-  var worldEl = $("#" + stageId + " world").first();
+  var vcenterEl = $("#" + stageId + " vcenter").first();
+  var vrotateEl = $("#" + stageId + " vrotate").first();
+  var worldEl   = $("#" + stageId + " world").first();
+
+  vcenterEl.velocity({ top: stageHeight / 2, left: stageWidth / 2 });
 
   // ---------------------------------------------------
 
@@ -124,8 +138,6 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
 
   var mapWidth = tileWidth * numCols;
   var mapHeight = tileHeight * numRows;
-  var mapWidth2 = mapWidth / 2;
-  var mapHeight2 = mapHeight / 2;
 
   var startCol = -1;
   var startRow = 0;
@@ -143,23 +155,35 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
 
   var px = (startCol * 1.0) + 0.5;
   var py = (startRow * 1.0) + 0.5;
+  var pr = 0;
 
-  var dirCmds = { 'up': [0, -1], 'down': [0, 1], 'left': [-1, 0],'right': [1, 0] };
+  var dirCmds = {
+    up: [0, -1, 0], down: [0, 1, 0], left: [-1, 0, 0], right: [1, 0, 0],
+    ccw: [0, 0, -1], cw: [0, 0, 1]
+  };
 
   function onMoved(force) {
     var pxOrig = px;
     var pyOrig = py;
+    var prOrig = pr;
     for (var k in curKeys) {
       var dir = dirCmds[cmdKeys[k]];
       if (dir) {
-        px = Math.min(Math.max(-mapWidth2, px + dir[0] * tileWidth2), mapWidth2);
-        py = Math.min(Math.max(-mapHeight2, py + dir[1] * tileHeight2), mapHeight2);
+        px = Math.min(Math.max(0, px + dir[0]), numCols);
+        py = Math.min(Math.max(0, py + dir[1]), numRows);
+        pr = pr + dir[2] * 10
       }
     }
-    if (px != pxOrig || py != pyOrig || force) {
+    if (px != pxOrig || py != pyOrig || pr != prOrig || force) {
       worldEl.velocity("stop").velocity({
-        left: -px,
-        top: -py
+        left: -(px * tileWidth),
+        top: -(py * tileHeight),
+      }, {
+        duration: 50,
+        complete: onMoved
+      });
+      vrotateEl.velocity("stop").velocity({
+        rotateZ: pr
       }, {
         duration: 50,
         complete: onMoved
