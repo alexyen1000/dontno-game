@@ -40,7 +40,7 @@ var cmdKeysIJKL = { i: 'up', j: 'left', k: 'down', l: 'right' };
 var curKeys = {};
 var curKeysChanged = []; // Registered callbacks.
 
-function curKeysChangedFire(keyDown, event) {
+function curKeysEvent(keyDown, event) {
   for (var i = 0; i < curKeysChanged.length; i++) {
     curKeysChanged[i](curKeys, keyDown, event);
   }
@@ -51,7 +51,7 @@ $(document).ready(function() {
     var k = wantKeys[event.which];
     if (k && !curKeys[k]) {
       curKeys[k] = event;
-      curKeysChangedFire(true, event);
+      curKeysEvent(true, event);
     }
   });
 
@@ -59,7 +59,7 @@ $(document).ready(function() {
     var k = wantKeys[event.which];
     if (k && curKeys[k]) {
       delete curKeys[wantKeys[event.which]];
-      curKeysChangedFire(false, event);
+      curKeysEvent(false, event);
     }
   });
 
@@ -122,25 +122,31 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
   var viewHeight = cfg.consts.view.height;
 
   var mapRows = _.compact(cfg.maps[mapName].map.split("\n"));
+  var numRows = mapRows.length;
+  var numCols = _.max(mapRows, function(row) { return row.length; }).length;
+
+  var mapWidth = tileWidth * numCols;
+  var mapHeight = tileHeight * numRows;
 
   var startCol = -1;
   var startRow = 0;
-  while (startRow < mapRows.length) {
+  while (startRow < numRows) {
     startCol = mapRows[startRow].indexOf('S');
     if (startCol >= 0) {
       break;
     }
     startRow++;
   }
-  if (startCol < 0 || startRow >= mapRows.length) {
+  if (startCol < 0 || startRow >= numRows) {
     console.log("could not find start point", mapName);
     return
   }
 
-  var numCols = _.max(mapRows, function(row) { return row.length; }).length;
-
   var px = (startCol * 1.0) + 0.5;
   var py = (startRow * 1.0) + 0.5;
+
+  var pxMid = mapWidth / 2;
+  var pyMid = mapHeight / 2;
 
   var dirCmds = { 'up': [0, -1], 'down': [0, 1], 'left': [-1, 0],'right': [1, 0] };
 
@@ -148,8 +154,8 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
     for (var k in curKeys) {
       var dir = dirCmds[cmdKeys[k]];
       if (dir) {
-        px = Math.max(0, px + dir[0] * tileWidth2);
-        py = Math.max(0, py + dir[1] * tileHeight2);
+        px = Math.min(Math.max(-pxMid, px + dir[0] * tileWidth2), pxMid);
+        py = Math.min(Math.max(-pyMid, py + dir[1] * tileHeight2), pyMid);
 
         worldEl.velocity("finish").velocity({
           left: -px + "px", top: -py + "px"
@@ -164,7 +170,7 @@ function runMap(cfg, stageId, mapName, curKeys, cmdKeys) {
 
   // ---------------------------------------------------
 
-  for (var r = 0; r < mapRows.length; r++) {
+  for (var r = 0; r < numRows; r++) {
     for (var c = 0; c < numCols; c++) {
       var tile = $("<tile/>");
       tile.attr("id", "t" + r + '-' + c);
